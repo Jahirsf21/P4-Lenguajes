@@ -26,3 +26,24 @@ export const listarPartidasEnEspera = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+export const unirAPartida = async (req,res) => {
+  const { partidaId } = req.params;
+  const { jugadorId } = req.body
+  if (!jugadorId) {
+    return res.status(400).json({ error: 'jugadorId es requerido.' });
+  }
+  try {
+    const resultado = await partidaService.unirJugadorAPartida(partidaId, jugadorId);
+    res.status(200).json(resultado.partida);
+  } catch (error) {
+    console.error("Error al unir jugador a la partida:", error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'El jugador ya está en esta partida.'});
+    }
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'La partida o el jugador no existen.'});
+    }
+    return res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+}

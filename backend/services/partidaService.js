@@ -42,3 +42,25 @@ export const obtenerPartidasEnEspera = async () => {
     jugadores: partida.jugadores.map(p => p.jugador),
   }));
 };
+
+export const unirJugadorAPartida = async (partidaId, jugadorId) => {
+
+  const nuevaUnion = await prisma.partidaJugador.create({
+    data: {
+      partidaId: partidaId,
+      jugadorId: jugadorId,
+    },
+    include: {
+      partida: {
+        include: {
+          jugadores: {
+            include: {
+              jugador: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return nuevaUnion;
+};

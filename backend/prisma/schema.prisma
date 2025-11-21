@@ -1,0 +1,66 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo para los jugadores
+model Jugador {
+  id        String   @id @default(cuid())
+  nickname  String   @unique
+  creadoEn  DateTime @default(now())
+
+  partidas  PartidaJugador[]
+  victorias Partida[]        @relation("GanadorPartida")
+}
+
+// Modelo para las partidas
+model Partida {
+  id          String         @id @default(cuid())
+  estado      EstadoPartida  @default(ESPERANDO)
+  tipoJuego   TipoPartida
+  limiteMatch Int?
+  limiteTiempo Int? // En segundos
+  tematica    String         @default("default")
+  creadaEn    DateTime       @default(now())
+  iniciadaEn  DateTime?
+  terminadaEn DateTime?
+
+  jugadores   PartidaJugador[]
+  ganador     Jugador?         @relation("GanadorPartida", fields: [ganadorId], references: [id])
+  ganadorId   String?
+}
+
+// Tabla intermedia para conectar Jugadores y Partidas (relación muchos a muchos)
+model PartidaJugador {
+  id          String @id @default(cuid())
+  puntuacion  Int    @default(0)
+
+  jugador     Jugador @relation(fields: [jugadorId], references: [id])
+  jugadorId   String
+
+  partida     Partida @relation(fields: [partidaId], references: [id])
+  partidaId   String
+
+  @@unique([jugadorId, partidaId]) // Un jugador no puede unirse dos veces a la misma partida
+}
+
+
+// --- Enums (listas de opciones) ---
+
+enum EstadoPartida {
+  ESPERANDO
+  EN_PROGRESO
+  FINALIZADA
+  CANCELADA
+}
+
+enum TipoPartida {
+  VS
+  VS_TIEMPO
+}
